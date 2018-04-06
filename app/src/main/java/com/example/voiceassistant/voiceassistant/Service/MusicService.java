@@ -1,4 +1,4 @@
-package com.example.voiceassistant.voiceassistant;
+package com.example.voiceassistant.voiceassistant.Service;
 
 import android.app.Service;
 import android.content.Intent;

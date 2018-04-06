@@ -1,4 +1,4 @@
-package com.example.voiceassistant.voiceassistant;
+package com.example.voiceassistant.voiceassistant.activity;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.example.voiceassistant.voiceassistant.Service.MusicService;
+import com.example.voiceassistant.voiceassistant.R;
 import com.example.voiceassistant.voiceassistant.adapter.MusicAdapter;
 import com.example.voiceassistant.voiceassistant.bean.Music;
 import com.example.voiceassistant.voiceassistant.utils.SearchMusicUtil;

@@ -55,15 +55,17 @@ public class JsonParser {
             JSONArray datas = result.getJSONArray("data");
             for (int i = 0; i < datas.length(); i++) {
                 Log.d(TAG, "parseNewsRequestResult: " + datas.get(i).toString());
-                Data data = new Data();
-                data.setAuthor_name(datas.getJSONObject(i).getString("author_name"));
-                data.setCategory(datas.getJSONObject(i).getString("category"));
-                data.setDate(datas.getJSONObject(i).getString("date"));
-                data.setThumbnail_pic_s(datas.getJSONObject(i).getString("thumbnail_pic_s"));
-                data.setTitle(datas.getJSONObject(i).getString("title"));
-                data.setUniquekey(datas.getJSONObject(i).getString("uniquekey"));
-                data.setUrl(datas.getJSONObject(i).getString("url"));
-                dataList.add(data);
+                if ( datas.getJSONObject(i).getString("thumbnail_pic_s") != null){
+                    Data data = new Data();
+                    data.setAuthor_name(datas.getJSONObject(i).getString("author_name"));
+                    data.setCategory(datas.getJSONObject(i).getString("category"));
+                    data.setDate(datas.getJSONObject(i).getString("date"));
+                    data.setTitle(datas.getJSONObject(i).getString("title"));
+                    data.setUniquekey(datas.getJSONObject(i).getString("uniquekey"));
+                    data.setUrl(datas.getJSONObject(i).getString("url"));
+                    data.setThumbnail_pic_s(datas.getJSONObject(i).getString("thumbnail_pic_s"));
+                    dataList.add(data);
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

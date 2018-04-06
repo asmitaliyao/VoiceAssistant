@@ -2,7 +2,9 @@ package com.example.voiceassistant.voiceassistant;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -78,6 +80,7 @@ public class MainActivity extends Activity {
         etText = findViewById(R.id.tv_help);
         iatDialog = new RecognizerDialog(this, mInitListener);
         iatDialog.setListener(new MyRecognizerDialogListener());
+        iatDialog.setParameter(SpeechConstant.ASR_PTT, "0");
         findViewById(R.id.btn_mic).setOnClickListener(new MyOnClickListener());
     }
 
@@ -85,6 +88,11 @@ public class MainActivity extends Activity {
 
         @Override
         public void onResult(RecognizerResult recognizerResult, boolean isLast) {
+            if (isLast){
+                return;
+            }
+            Log.d(TAG, "onResult: " + isLast);
+
             String text = JsonParser.parseIatResult(recognizerResult.getResultString());
 
             String sn = null;
@@ -101,12 +109,60 @@ public class MainActivity extends Activity {
             for (String key : mIatResults.keySet()) {
                 resultBuffer.append(mIatResults.get(key));
             }
-            etText.setText(resultBuffer.toString());
+
+            String result = resultBuffer.toString();
+
+            //解析result
+            if (!TextUtils.isEmpty(result)){
+                resolveResult(result);
+            }
+
+            etText.setText(result);
         }
 
         @Override
         public void onError(SpeechError speechError) {
 
+        }
+    }
+
+    /**
+     * 解析result字符串：音乐/新闻
+     * @param result
+     */
+    private void resolveResult(String result) {
+        if (result.length() < 2){
+            return;
+        }
+
+        String typeStr = result.substring(0,2);
+        if ("新闻".equals(typeStr)){
+            // TODO: 18/4/6 进入新闻界面
+        } else if ("音乐".equals(typeStr)){
+            //  18/4/6 进入音乐界面
+
+            //解析音乐名称
+            String musicStr = resolveMusic(result);
+            Log.d(TAG, "resolveResult: music = " + musicStr);
+            if (TextUtils.isEmpty(musicStr)){
+                etText.setText("请您说出音乐名称\neg：音乐囚鸟");
+            } else {
+                Intent intent = new Intent(this, MusicPlayerActivity.class);
+                intent.putExtra("music", musicStr);
+                startActivity(intent);
+            }
+        }
+    }
+
+    /**
+     * 解析音乐名称
+     * @param result
+     */
+    private String resolveMusic(String result) {
+        if (result.length() <= 2){
+            return "";
+        } else {
+            return result.substring(2, result.length());
         }
     }
 

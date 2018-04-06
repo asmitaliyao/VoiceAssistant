@@ -1,5 +1,6 @@
 package com.example.voiceassistant.voiceassistant;
 
+import android.Manifest;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.voiceassistant.voiceassistant.bean.DictationResult;
+import com.example.voiceassistant.voiceassistant.utils.RequestPermission;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.iflytek.cloud.ErrorCode;
@@ -27,6 +29,7 @@ public class MainActivity extends Activity {
 
     private RecognizerDialog iatDialog;
     private TextView etText;
+    private RequestPermission requestPermission;
 
     private InitListener mInitListener = new InitListener() {
         @Override
@@ -37,23 +40,33 @@ public class MainActivity extends Activity {
             }
         }
     };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        initPermission();
         init();
     }
 
+    private void initPermission() {
+        requestPermission = RequestPermission.getInstance(this, new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO});
+        if (!requestPermission.isAllGranted())
+            requestPermission.requestPermissions();
+    }
+
     private void init() {
-        SpeechUtility. createUtility( this, SpeechConstant. APPID + "=5a9cb8a4" );
-        etText=findViewById(R.id.tv_help);
-        iatDialog= new RecognizerDialog(this,mInitListener);
+        SpeechUtility.createUtility(this, SpeechConstant.APPID + "=5a9cb8a4");
+        etText = findViewById(R.id.tv_help);
+        iatDialog = new RecognizerDialog(this, mInitListener);
         iatDialog.setListener(new MyRecognizerDialogListener());
         findViewById(R.id.btn_mic).setOnClickListener(new MyOnClickListener());
     }
 
-    class MyRecognizerDialogListener implements RecognizerDialogListener{
+    class MyRecognizerDialogListener implements RecognizerDialogListener {
 
         String resultJson = "[";
 
@@ -85,7 +98,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    class MyOnClickListener implements View.OnClickListener{
+    class MyOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             switch (v.getId()) {

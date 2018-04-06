@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.voiceassistant.voiceassistant.bean.Data;
 import com.example.voiceassistant.voiceassistant.bean.DictationResult;
 import com.example.voiceassistant.voiceassistant.utils.JsonParser;
 import com.example.voiceassistant.voiceassistant.utils.RequestPermission;
@@ -30,7 +31,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -88,7 +91,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onResult(RecognizerResult recognizerResult, boolean isLast) {
-            if (isLast){
+            if (isLast) {
                 return;
             }
             Log.d(TAG, "onResult: " + isLast);
@@ -113,7 +116,7 @@ public class MainActivity extends Activity {
             String result = resultBuffer.toString();
 
             //解析result
-            if (!TextUtils.isEmpty(result)){
+            if (!TextUtils.isEmpty(result)) {
                 resolveResult(result);
             }
 
@@ -128,23 +131,32 @@ public class MainActivity extends Activity {
 
     /**
      * 解析result字符串：音乐/新闻
+     *
      * @param result
      */
     private void resolveResult(String result) {
-        if (result.length() < 2){
+        if (result.length() < 2) {
             return;
         }
 
-        String typeStr = result.substring(0,2);
-        if ("新闻".equals(typeStr)){
+        String typeStr = result.substring(0, 2);
+        if ("新闻".equals(typeStr)) {
             // TODO: 18/4/6 进入新闻界面
-        } else if ("音乐".equals(typeStr)){
+
+            try {
+                URL url = new URL("http://v.juhe.cn/toutiao/index?type=top&key=26015a44325349d4daeff7b41429ce81");
+                requestNewsJsonData(url);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+        } else if ("音乐".equals(typeStr)) {
             //  18/4/6 进入音乐界面
 
             //解析音乐名称
             String musicStr = resolveMusic(result);
             Log.d(TAG, "resolveResult: music = " + musicStr);
-            if (TextUtils.isEmpty(musicStr)){
+            if (TextUtils.isEmpty(musicStr)) {
                 etText.setText("请您说出音乐名称\neg：音乐囚鸟");
             } else {
                 Intent intent = new Intent(this, MusicPlayerActivity.class);
@@ -156,10 +168,11 @@ public class MainActivity extends Activity {
 
     /**
      * 解析音乐名称
+     *
      * @param result
      */
     private String resolveMusic(String result) {
-        if (result.length() <= 2){
+        if (result.length() <= 2) {
             return "";
         } else {
             return result.substring(2, result.length());
@@ -174,13 +187,6 @@ public class MainActivity extends Activity {
                     mIatResults.clear();
                     //开始听写，需将sdk中的assets文件下的文件夹拷入项目的assets文件夹下（没有的话自己新建）
                     iatDialog.show();
-
-//                    try {
-//                        URL url = new URL("http://v.juhe.cn/toutiao/index?type=top&key=26015a44325349d4daeff7b41429ce81");
-//                        requestNewsJsonData(url);
-//                    } catch (MalformedURLException e) {
-//                        e.printStackTrace();
-//                    }
                     break;
             }
         }
@@ -198,7 +204,14 @@ public class MainActivity extends Activity {
                     if (response.isSuccessful()) {
                         Log.d(TAG, "run: response.code()=" + response.code());
                         Log.d(TAG, "run: response.message()=" + response.message());
-                        Log.d(TAG, "run: response.body()=" + response.body().string());
+                        List<Data> dataList;
+                        dataList = JsonParser.parseNewsRequestResult(response.body().string());
+
+                        Iterator it = dataList.iterator();
+                        while(it.hasNext()){
+                            Data data = (Data)it.next();
+                            Log.d(TAG, "run: data title " + data.getTitle());
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

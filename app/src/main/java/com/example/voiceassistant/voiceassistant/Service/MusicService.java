@@ -17,10 +17,15 @@ import java.io.IOException;
 public class MusicService extends Service {
     private static final String TAG = "MusicService";
 
-    public static MediaPlayer mediaPlayer = new MediaPlayer();
-    private Music music;
+    private static MediaPlayer mediaPlayer;
 
     public final IBinder binder = new MyBinder();
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mediaPlayer = new MediaPlayer();
+    }
 
     @Nullable
     @Override
@@ -34,56 +39,59 @@ public class MusicService extends Service {
         }
     }
 
-    public void pause() {
-        if (mediaPlayer.isPlaying()) {
-            mediaPlayer.pause();
-        }
-    }
-
-    public void play() {
+    public void playOrPause() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
+        } else {
+            mediaPlayer.pause();
         }
     }
 
     public void stop() {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.release();
-//            try {
-//                mediaPlayer.prepare();
-//                mediaPlayer.seekTo(0);
-//            } catch (IOException e) {
-//                Log.e(TAG, "stop: " + e.toString(), e);
-//                e.printStackTrace();
-//            }
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.prepare();
+                mediaPlayer.seekTo(0);
+            } catch (Exception e) {
+                Log.e(TAG, "stop: " + e.toString());
+            }
         }
     }
 
+    public boolean isPlay(){
+        return mediaPlayer.isPlaying();
+    }
+
     public void setMusic(Music music){
-        stop();
+        Log.d(TAG, "setMusic: music == null ? " + (music == null));
         if (music != null ) {
             try {
                 Log.d(TAG, "setMusic: path = " + music.getPath());
                 mediaPlayer.setDataSource(music.getPath());
                 mediaPlayer.prepare();
                 mediaPlayer.start();
-            } catch (IOException e) {
-                Log.e(TAG, "MusicService: " + e.toString(), e);
-                e.printStackTrace();
+            } catch (Exception e) {
+                Log.e(TAG, "MusicService: " + e.toString());
             }
         }
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        mediaPlayer.stop();
+        if (mediaPlayer != null){
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         return super.onUnbind(intent);
     }
 
     @Override
     public void onDestroy() {
-        mediaPlayer.stop();
+        if (mediaPlayer != null){
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
         super.onDestroy();
     }
 }

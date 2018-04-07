@@ -50,7 +50,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:visibility="invisible"
         android:orientation="vertical">
 
         <TextView
@@ -118,44 +117,27 @@
             android:layout_marginTop="15dp"
             android:layout_gravity="center"/>
 
-        <LinearLayout
-            android:layout_width="240dp"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="15dp"
-            android:layout_gravity="center_horizontal">
+            android:padding="12dp">
 
-            <TextView
-                android:id="@+id/music_player_stop"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_weight="1"
-                android:text="Stop"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_gray_unclick"/>
-            <TextView
+            <Button
                 android:id="@+id/music_player_play"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_weight="1"
-                android:text="Play"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/color_gray_unclick"/>
-            <TextView
-                android:id="@+id/music_player_pause"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:textSize="24sp"
-                android:layout_weight="1"
-                android:text="Pause"
-                android:textStyle="bold"
-                android:textColor="#999999"/>
-        </LinearLayout>
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:background="@drawable/pause_normal"
+                android:layout_centerInParent="true"/>
+            <Button
+                android:id="@+id/music_player_stop"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/stop_normal"
+                android:layout_alignParentRight="true"
+                android:layout_alignBottom="@id/music_player_play"/>
+        </RelativeLayout>
     </LinearLayout>
 
 

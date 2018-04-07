@@ -11,8 +11,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -29,6 +31,7 @@ import java.util.List;
 
 
 public class MusicPlayerActivity extends Activity {
+    private static final String TAG = "MusicPlayerActivity";
     private static final int MSG_NO_MUSIC = 0;
     private static final int MSG_ONE_MUSIC = 1;
     private static final int MSG_MULTIPLE_MUSIC = 2;
@@ -48,9 +51,8 @@ public class MusicPlayerActivity extends Activity {
     private TextView currentMusic;
     private TextView totalDuration;
     private TextView musicSinger;
-    private TextView musicPlay;
-    private TextView musicStop;
-    private TextView musicPause;
+    private Button musicPlay;
+    private Button musicStop;
     private TextView currentDuration;
     private SeekBar seekBar;
     private MusicService musicService;
@@ -67,6 +69,7 @@ public class MusicPlayerActivity extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             musicService = ((MusicService.MyBinder) service).getService();
+            startSearchMusic(mMusicName);
         }
 
         @Override
@@ -87,7 +90,7 @@ public class MusicPlayerActivity extends Activity {
                     mLlMusicController.setVisibility(View.VISIBLE);
                     initControllerInfo();
                     //  18/4/6 直接播放该音乐
-                    if (musicService != null){
+                    if (musicService != null) {
                         musicService.setMusic(music);
                     }
                     break;
@@ -97,7 +100,7 @@ public class MusicPlayerActivity extends Activity {
                     //  18/4/6 展示所有的音乐，并播放第一首，2s后列表消失
                     mAdapter.notifyDataSetChanged();
 
-                    if (musicService != null){
+                    if (musicService != null) {
                         musicService.setMusic(music);
                     }
                     dismissSearchInfo();
@@ -115,7 +118,7 @@ public class MusicPlayerActivity extends Activity {
             e.printStackTrace();
         }
 
-        if (!isSelected){
+        if (!isSelected) {
             mLlSearchMusic.setVisibility(View.GONE);
             mLlMusicController.setVisibility(View.VISIBLE);
         }
@@ -137,7 +140,6 @@ public class MusicPlayerActivity extends Activity {
         initView();
 
 
-        startSearchMusic(mMusicName);
     }
 
     /**
@@ -160,31 +162,36 @@ public class MusicPlayerActivity extends Activity {
 
     /**
      * 从列表中查找该音乐
+     *
      * @param musicList
      * @param musicName
      */
     private void realSearchMusic(List<Music> musicList, String musicName) {
-        for (Music music: musicList){
-            if (music.getMusic().contains(musicName)){
+        for (Music music : musicList) {
+            if (music.getMusic().contains(musicName)) {
                 mMusicList.add(music);
             }
         }
 
+        Log.d(TAG, "realSearchMusic: music = " + musicName);
         if (mMusicList == null || mMusicList.size() == 0) {
+            Log.d(TAG, "realSearchMusic: music0 = " + musicName);
             mHandler.sendEmptyMessage(MSG_NO_MUSIC);
-        } else if (mMusicList.size() == 1){
+        } else if (mMusicList.size() == 1) {
             music = mMusicList.get(0);
+            Log.d(TAG, "realSearchMusic: music1 = " + music.getMusic());
             mHandler.sendEmptyMessage(MSG_ONE_MUSIC);
         } else {
             music = mMusicList.get(0);
+            Log.d(TAG, "realSearchMusic: music2 = " + music.getMusic());
             mHandler.sendEmptyMessage(MSG_MULTIPLE_MUSIC);
         }
     }
 
     private void bindServiceConnection() {
         intent = new Intent(this, MusicService.class);
-        startService(intent);
         bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+        startService(intent);
     }
 
     private void initView() {
@@ -206,13 +213,13 @@ public class MusicPlayerActivity extends Activity {
         totalDuration = findViewById(R.id.music_duration_total);
         seekBar = findViewById(R.id.music_seekbar);
 
+
+
         MyOnClickListener myOnClickListener = new MyOnClickListener();
         musicPlay = findViewById(R.id.music_player_play);
         musicPlay.setOnClickListener(myOnClickListener);
         musicStop = findViewById(R.id.music_player_stop);
         musicStop.setOnClickListener(myOnClickListener);
-        musicPause = findViewById(R.id.music_player_pause);
-        musicPause.setOnClickListener(myOnClickListener);
 
         mLvMusics.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -220,14 +227,14 @@ public class MusicPlayerActivity extends Activity {
                 //  18/4/6 停止上一首歌曲，播放该歌曲
                 isSelected = true;
                 music = mMusicList.get(i);
-                if (musicService != null){
+                if (musicService != null) {
                     musicService.setMusic(music);
                 }
             }
         });
     }
 
-    private void initControllerInfo(){
+    private void initControllerInfo() {
         currentMusic.setText(music.getMusic());
         musicSinger.setText(music.getSinger());
         totalDuration.setText(SearchMusicUtil.formatTime(music.getDuration()));
@@ -239,22 +246,18 @@ public class MusicPlayerActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.music_player_play:
-                    musicService.play();
-                    musicPlay.setTextColor(Color.parseColor("#222222"));
-                    musicPause.setTextColor(Color.parseColor("#999999"));
-                    musicStop.setTextColor(Color.parseColor("#999999"));
+                    if (!musicService.isPlay()){
+                        musicPlay.setBackgroundResource(R.drawable.pause_normal);
+                    } else {
+                        musicPlay.setBackgroundResource(R.drawable.play_normal);
+                    }
+                    musicService.playOrPause();
                     break;
                 case R.id.music_player_stop:
+                    musicPlay.setBackgroundResource(R.drawable.play_normal);
                     musicService.stop();
-                    musicPlay.setTextColor(Color.parseColor("#999999"));
-                    musicPause.setTextColor(Color.parseColor("#999999"));
-                    musicStop.setTextColor(Color.parseColor("#222222"));
                     break;
-                case R.id.music_player_pause:
-                    musicService.pause();
-                    musicPlay.setTextColor(Color.parseColor("#999999"));
-                    musicPause.setTextColor(Color.parseColor("#222222"));
-                    musicStop.setTextColor(Color.parseColor("#999999"));
+                default:
                     break;
             }
         }

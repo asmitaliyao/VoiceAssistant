@@ -35,6 +35,7 @@ public class MusicPlayerActivity extends Activity {
     private static final int MSG_NO_MUSIC = 0;
     private static final int MSG_ONE_MUSIC = 1;
     private static final int MSG_MULTIPLE_MUSIC = 2;
+    private static final int MSG_UPDATE_PROGRESS = 3;
 
     private Music music;
     private List<Music> mMusicList = new ArrayList<>();
@@ -93,6 +94,7 @@ public class MusicPlayerActivity extends Activity {
                     if (musicService != null) {
                         musicService.setMusic(music);
                     }
+                    showProgress();
                     break;
                 case MSG_MULTIPLE_MUSIC:
                     mTvSearching.setVisibility(View.GONE);
@@ -103,7 +105,15 @@ public class MusicPlayerActivity extends Activity {
                     if (musicService != null) {
                         musicService.setMusic(music);
                     }
+                    showProgress();
                     dismissSearchInfo();
+                    break;
+                case MSG_UPDATE_PROGRESS:
+                    int position = msg.arg1;
+                    int time = music.getDuration();
+                    int max = seekBar.getMax();
+                    seekBar.setProgress(position * max / time);
+                    currentDuration.setText(SearchMusicUtil.formatTime(position));
                     break;
                 default:
                     break;
@@ -214,7 +224,6 @@ public class MusicPlayerActivity extends Activity {
         seekBar = findViewById(R.id.music_seekbar);
 
 
-
         MyOnClickListener myOnClickListener = new MyOnClickListener();
         musicPlay = findViewById(R.id.music_player_play);
         musicPlay.setOnClickListener(myOnClickListener);
@@ -232,11 +241,56 @@ public class MusicPlayerActivity extends Activity {
                 }
             }
         });
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int position, boolean b) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int dest = seekBar.getProgress();
+                int time = music.getDuration();
+                int max = seekBar.getMax();
+
+                if (musicService != null){
+                    musicService.setSeek(time*dest/max);
+                }
+            }
+        });
+    }
+
+    private void showProgress() {
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        sleep(500);
+                        if (musicService != null) {
+                            int position = musicService.getCurrentPosition();
+                            Message msg = Message.obtain();
+                            msg.what = MSG_UPDATE_PROGRESS;
+                            msg.arg1 = position;
+                            mHandler.sendMessage(msg);
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
     }
 
     private void initControllerInfo() {
         currentMusic.setText(music.getMusic());
         musicSinger.setText(music.getSinger());
+        Log.d(TAG, "initControllerInfo: time = " + music.getDuration());
         totalDuration.setText(SearchMusicUtil.formatTime(music.getDuration()));
     }
 
@@ -246,7 +300,7 @@ public class MusicPlayerActivity extends Activity {
         public void onClick(View v) {
             switch (v.getId()) {
                 case R.id.music_player_play:
-                    if (!musicService.isPlay()){
+                    if (!musicService.isPlay()) {
                         musicPlay.setBackgroundResource(R.drawable.pause_normal);
                     } else {
                         musicPlay.setBackgroundResource(R.drawable.play_normal);

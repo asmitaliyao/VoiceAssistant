@@ -60,7 +60,23 @@ public class MusicService extends Service {
     }
 
     public boolean isPlay(){
-        return mediaPlayer.isPlaying();
+        if (mediaPlayer != null){
+            return mediaPlayer.isPlaying();
+        }
+        return false;
+    }
+
+    public int getCurrentPosition(){
+        if (mediaPlayer != null){
+            return mediaPlayer.getCurrentPosition();
+        }
+        return 0;
+    }
+
+    public void setSeek(int progress){
+        if (mediaPlayer != null){
+            mediaPlayer.seekTo(progress);
+        }
     }
 
     public void setMusic(Music music){
